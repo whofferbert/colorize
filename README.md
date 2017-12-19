@@ -6,14 +6,14 @@ The colorization happens via ANSI escape sequences.
 
 The rules are based on perl regex.
 
-
 This was written to ease the eyes of people who have to work at the CLI and look at logs a lot.
-
 
 Requires the following to run:
 
 Perl 5.010
+
 Getopt::Long
+
 File::Basename
 
 
