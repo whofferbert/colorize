@@ -1,0 +1,247 @@
+#!/usr/bin/env perl
+# by William Hofferbert
+# a script to colorize text at the command line via ANSI escape sequences
+use 5.010;
+use strict;
+use warnings;
+use Data::Dumper;
+use File::Basename;
+use Getopt::Long;
+
+# Default Variables
+
+my ( $toless, %rules, $file, $use_ruleset, $add_ruleset, $less_fh);
+my $prog = basename($0);
+my $dirname = dirname(__FILE__);
+my $ruleset_dir = "$dirname/colorize.d";
+
+my $reset = "\e[0m";
+
+my @color = ( 'DEFAULT', 'BOLD', 'BLACK', 'RED', 'BLUE', 'YELLOW', 'GREEN',
+              'MAJENTA', 'CYAN', 'WHITE', 'BBLACK', 'BRED', 'BBLUE',
+              'BYELLOW', 'BGREEN', 'BMAJENTA', 'BCYAN', 'BWHITE', 'BGDEFAULT',
+              'BGBLACK', 'BGRED', 'BGBLUE', 'BGYELLOW', 'BGGREEN', 'BGMAJENTA', 'BGCYAN', 'BGWHITE');
+
+my %colors = (
+  'DEFAULT'      => "",
+  'BOLD'         => "\e[1m",
+  'BLACK'        => "\e[30m",
+  'RED'          => "\e[31m",
+  'GREEN'        => "\e[32m",
+  'YELLOW'       => "\e[33m",
+  'BLUE'         => "\e[34m",
+  'MAJENTA'      => "\e[35m",
+  'CYAN'         => "\e[36m",
+  'WHITE'        => "\e[37m",
+  'BBLACK'       => "\e[1;30m",
+  'BRED'         => "\e[1;31m",
+  'BGREEN'       => "\e[1;32m",
+  'BYELLOW'      => "\e[1;33m",
+  'BBLUE'        => "\e[1;34m",
+  'BMAJENTA'     => "\e[1;35m",
+  'BCYAN'        => "\e[1;36m",
+  'BWHITE'       => "\e[1;37m",
+  'BGDEFAULT'      => "",
+  'BGBLACK'        => "\e[40m",
+  'BGRED'          => "\e[41m",
+  'BGBLUE'         => "\e[42m",
+  'BGYELLOW'       => "\e[43m",
+  'BGGREEN'        => "\e[44m",
+  'BGMAJENTA'      => "\e[45m",
+  'BGCYAN'         => "\e[46m",
+  'BGWHITE'        => "\e[47m"
+);
+
+# Functions
+
+sub print_colors {
+  my $spacing="14";
+  printf "%${spacing}s ", "Text Color:";
+  print " Rendition:\n";
+  foreach my $color (@color) {
+    printf "%${spacing}s ", $color;
+    print "$colors{$color} Text \e[0m";
+    print "\n";
+  }
+  exit;
+}
+
+sub usage {
+  my $usage = <<"  END_USAGE";
+
+  This program colorizes text at the command line based on a ruleset that you can provide it. 
+  It requires either piped input, or a provided filename.
+
+    Basic Usage: $prog [options] /path/to/file
+                 ... | $prog [options]
+
+  Options:
+
+    -use-ruleset [/path/to/ruleset.rules]
+      Use the specified ruleset for colorization, instead of the defaults in $ruleset_dir
+
+    -add-ruleset [/path/to/ruleset.rules]
+      Use the specified ruleset for colorization, in addition to the defaults in $ruleset_dir
+
+    -use-ruleset-dir [/path/to/ruleset.d/]
+      Use the specified ruleset directory, instead of the default: $ruleset_dir
+
+    -less
+      View the output in less
+
+    -show-colors
+      Print the available color pallette
+
+    -help       Print this help.
+
+  Examples:
+
+    # show the available colors
+    $prog -show-colors
+ 
+    # colorize some grep results and view with less
+    dmesg | grep -Ei "warn|err" | $prog -less
+ 
+    # Look at the contents of a script in less
+    $prog $dirname/$prog -less
+ 
+    # Another way to use less and preserve colors...
+    $prog $dirname/$prog | less -r
+ 
+  END_USAGE
+
+  say "$usage";
+  exit(0);
+}
+
+sub check_required_args {
+  &err ("No piped input detected, and no filename provided! (see: $prog -help)") if ( -t STDIN and not @ARGV);
+  $file = $ARGV[0] if ( -t STDIN );
+}
+
+sub handle_args {
+  if ( Getopt::Long::GetOptions(
+    'use-ruleset=s' => \$use_ruleset,
+    'add-ruleset=s' => \$add_ruleset,
+    'show-colors' => \&print_colors,
+    'use-ruleset-dir=s' => \$ruleset_dir,
+    'less' => \$toless,
+    'help' => \&usage,
+     ) )   {
+    &check_required_args;
+  }
+}
+
+
+sub err {
+  my $msg=shift;
+  say "$msg";
+  exit 2;
+}
+
+sub warn {
+  my $msg=shift;
+  say "$msg";
+}
+
+sub load_rules {
+  my $rulefile = shift;
+  open my $fh, "<", $rulefile;
+  while (<$fh>) {
+    my $rule = $_;
+    chomp $rule;
+    next if ($rule =~ /^\s*#|^$|^[^\/]/);
+    my @rulearr = split(/\s([A-Z]+$)/, $rule);
+    my @regexarr = split(/(^\/|\/$)/, $rulearr[0]);
+    $rules{$regexarr[2]} = $rulearr[1];
+  }
+  close $fh;
+}
+
+sub load_default_rules {
+  my @default_rules = <$ruleset_dir/*.rules>;
+  foreach my $rules (@default_rules) {
+    &load_rules ($rules);
+  }
+}
+
+sub sanity {
+  if ($use_ruleset) {
+    &load_rules($use_ruleset);
+  } elsif ($add_ruleset) {
+    &load_rules($add_ruleset);
+    &load_default_rules;
+  } else {
+    &load_default_rules;
+  }
+}
+
+
+sub parse_line {
+  my $line = shift;
+  my @regex_match = @_;
+  # TODO this would be nice to fix up in the future, 
+  # as any matching groups mess up the color replace logic
+  foreach my $regex (@regex_match) {
+    my @match = split(/($regex)/, $line);
+    my $color = $rules{$regex};
+    if (($match[0]) && ($match[1]) && ($match[2])) {
+      $line = "$match[0]" . $colors{$color} . "$match[1]" . $reset . "$match[2]";
+    } elsif (($match[0]) && ($match[1])) {
+      $line = "$match[0]" . $colors{$color} . "$match[1]" . $reset;
+    }
+  }
+  if ($toless) {
+    print $less_fh "$line\n";
+  } else {
+    print "$line\n";
+  }
+}
+
+
+sub color_text {
+  my $text = shift;
+  my $found;
+  my @regex_match;
+  chomp $text;
+  foreach my $regex (keys(%rules)) {
+    if ( $text =~ /$regex/ ) {
+      $found = "t";
+      push(@regex_match, $regex);
+    }
+  }
+  if ($found) {
+    &parse_line("$text", @regex_match);
+  } else {
+    if ($toless) {
+      print $less_fh "$text\n";
+    } else {
+      print "$text\n";
+    }
+  }
+}
+
+sub handle_file_or_stdin {
+  if ($file) {
+    open my $fh, "<", $file;
+    while (<$fh>) {
+      &color_text($_);
+    }
+    close $fh;
+  } else {
+    while (<STDIN>) {
+      &color_text($_);
+    }
+  }
+}
+
+sub main {
+  &handle_args;
+  &sanity;
+  #say Dumper(\%rules);
+  open $less_fh, '|-', 'less -r' or die $! if ($toless);
+  &handle_file_or_stdin;
+  close $less_fh if ($toless);
+}
+
+&main;

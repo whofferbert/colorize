@@ -1,0 +1,8 @@
+# example rules
+/(?i)william hofferbert/ RED
+#/\S+@\S+\.[\w.]{2,6}/ BLUE
+/(?i)\berror\b/ BRED
+/(?i)\berr\b/ BRED
+/(?i)\bwarning\b/ YELLOW
+/(?i)\bwarn\b/ YELLOW
+

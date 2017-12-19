@@ -1,0 +1,37 @@
+#
+# This directory contains default rule files for colorizer.
+#
+# Colorizer reads all *.rules files in this directory to build it's list of working rules while running.
+#
+# Rules are written in the format::
+/perl regex/ COLOR
+#
+# where COLOR is any of:
+       DEFAULT
+          BOLD
+         BLACK
+           RED
+          BLUE
+        YELLOW
+         GREEN
+       MAJENTA
+          CYAN
+         WHITE
+        BBLACK
+          BRED
+         BBLUE
+       BYELLOW
+        BGREEN
+      BMAJENTA
+         BCYAN
+        BWHITE
+     BGDEFAULT
+       BGBLACK
+         BGRED
+        BGBLUE
+      BGYELLOW
+       BGGREEN
+     BGMAJENTA
+        BGCYAN
+       BGWHITE
+
