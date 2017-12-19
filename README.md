@@ -1,4 +1,4 @@
-# colorizer
+# colorize
 
 This perl utility can colorize text at the command line based on rules that you define.
 
