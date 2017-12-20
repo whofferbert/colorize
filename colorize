@@ -180,16 +180,14 @@ sub sanity {
 sub parse_line {
   my $line = shift;
   my @regex_match = @_;
-  # TODO this would be nice to fix up in the future, 
-  # as any matching groups mess up the color replace logic
+  # the biggest problem here is capturing groups cause some data to pile up on stdout
+  # solution: suggest to people to use non-capturing groups
   foreach my $regex (@regex_match) {
     my @match = split(/($regex)/, $line);
-    my $color = $rules{$regex};
-    if (($match[0]) && ($match[1]) && ($match[2])) {
-      $line = "$match[0]" . $colors{$color} . "$match[1]" . $reset . "$match[2]";
-    } elsif (($match[0]) && ($match[1])) {
-      $line = "$match[0]" . $colors{$color} . "$match[1]" . $reset;
+    foreach my $match (@match) {
+      $match = $colors{$rules{$regex}} . $match . $reset if ($match =~ /$regex/);
     }
+    $line = join('', @match);
   }
   if ($toless) {
     print $less_fh "$line\n";
