@@ -1,8 +1,30 @@
-# example rules
-/(?i)william hofferbert/ RED
-#/\S+@\S+\.[\w.]{2,6}/ BLUE
-/(?i)\berror\b/ BRED
-/(?i)\berr\b/ BRED
-/(?i)\bwarning\b/ YELLOW
-/(?i)\bwarn\b/ YELLOW
+#
+# Example Rules
+#
+# remember to use non-capturing groups! ie (?:thing) instead of (thing)
+#
 
+#
+# highlight name
+#
+/(?i)will(?:iam)? hofferbert/ RED
+
+#
+# highlight emails
+#
+
+#/\S+@\S+\.[\w.]{2,6}/ BLUE
+
+#
+# Highlight warnings/errors
+#
+
+/(?i)\berr(?:or)?\b/ BRED
+/(?i)\bwarn(?:ing)?\b/ YELLOW
+
+# examples of above without grouping
+
+#/(?i)\berror\b/ BRED
+#/(?i)\berr\b/ BRED
+#/(?i)\bwarning\b/ YELLOW
+#/(?i)\bwarn\b/ YELLOW
