@@ -44,9 +44,9 @@ my %colors = (
   'BGDEFAULT'      => "",
   'BGBLACK'        => "\e[40m",
   'BGRED'          => "\e[41m",
-  'BGBLUE'         => "\e[42m",
+  'BGGREEN'        => "\e[42m",
   'BGYELLOW'       => "\e[43m",
-  'BGGREEN'        => "\e[44m",
+  'BGBLUE'         => "\e[44m",
   'BGMAJENTA'      => "\e[45m",
   'BGCYAN'         => "\e[46m",
   'BGWHITE'        => "\e[47m"
@@ -106,7 +106,7 @@ sub usage {
     $prog $dirname/$prog -less
  
     # Another way to use less and preserve colors...
-    $prog $dirname/$prog | less -r
+    $prog $dirname/$prog | less -R
  
   END_USAGE
 
@@ -237,7 +237,7 @@ sub main {
   &handle_args;
   &sanity;
   #say Dumper(\%rules);
-  open $less_fh, '|-', 'less -r' or die $! if ($toless);
+  open $less_fh, '|-', 'less -R' or die $! if ($toless);
   &handle_file_or_stdin;
   close $less_fh if ($toless);
 }
