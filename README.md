@@ -57,7 +57,7 @@ $ ./colorize -h
     colorize ./colorize -less
  
     # Another way to use less and preserve colors...
-    colorize ./colorize | less -r
+    colorize ./colorize | less -R
  
 
 ```
