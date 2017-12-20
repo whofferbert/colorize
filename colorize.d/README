@@ -6,6 +6,10 @@
 # Rules are written in the format::
 /perl regex/ COLOR
 #
+# colorize relies on a simple grouping scheme, so make sure any groups you have are non-matching groups!
+# 
+# IE (?:thing|other_thing) instead of (thing|other_thing)
+#
 # where COLOR is any of:
        DEFAULT
           BOLD
