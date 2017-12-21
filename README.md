@@ -18,6 +18,7 @@ File::Basename
 
 
 ```perl
+
 $ ./colorize -h
 
   This program colorizes text at the command line based on a ruleset that you can provide it. 
@@ -40,6 +41,10 @@ $ ./colorize -h
     -color COLOR=OTHERCOLOR
       Use this switch to force a color to display as another. Useful if just one in a large set blends in with your background
 
+    -rule "/perl regex/ COLOR"
+      Add a rule where any text that matches the provided /perl regex/ will be colored as COLOR,
+      where COLOR can be any of the named colors from colorize -show-colors
+
     -less
       View the output in less
 
@@ -61,6 +66,10 @@ $ ./colorize -h
  
     # Another way to use less and preserve colors...
     colorize ./colorize | less -R
+
+    # Specify additional rules at runtime
+    colorize ./colorize -rule "/this is a test/ BBLUE" 
+ 
  
 
 ```
