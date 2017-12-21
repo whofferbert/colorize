@@ -37,6 +37,9 @@ $ ./colorize -h
     -use-ruleset-dir [/path/to/ruleset.d/]
       Use the specified ruleset directory, instead of the default: ./colorize.d
 
+    -color COLOR=OTHERCOLOR
+      Use this switch to force a color to display as another. Useful if just one in a large set blends in with your background
+
     -less
       View the output in less
 
