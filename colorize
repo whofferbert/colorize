@@ -86,6 +86,9 @@ sub usage {
     -use-ruleset-dir [/path/to/ruleset.d/]
       Use the specified ruleset directory, instead of the default: $ruleset_dir
 
+    -color COLOR=OTHERCOLOR
+      Use this switch to force a color to display as another. Useful if just one in a large set blends in with your background
+
     -less
       View the output in less
 
@@ -119,12 +122,21 @@ sub check_required_args {
   $file = $ARGV[0] if ( -t STDIN );
 }
 
+sub adjust_colors {
+  my @color_pair = split(/=/, $ARGV[0]);
+  $colors{$color_pair[0]} = $colors{$color_pair[1]};
+  #print $color_pair;
+  #print "\n";
+  #exit;
+}
+
 sub handle_args {
   if ( Getopt::Long::GetOptions(
     'use-ruleset=s' => \$use_ruleset,
     'add-ruleset=s' => \$add_ruleset,
     'show-colors' => \&print_colors,
     'use-ruleset-dir=s' => \$ruleset_dir,
+    'color' => \&adjust_colors,
     'less' => \$toless,
     'help' => \&usage,
      ) )   {
