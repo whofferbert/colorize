@@ -54,18 +54,6 @@ my %colors = (
 
 # Functions
 
-sub print_colors {
-  my $spacing="14";
-  printf "%${spacing}s ", "Text Color:";
-  print " Rendition:\n";
-  foreach my $color (@color) {
-    printf "%${spacing}s ", $color;
-    print "$colors{$color} Text \e[0m";
-    print "\n";
-  }
-  exit;
-}
-
 sub usage {
   my $usage = <<"  END_USAGE";
 
@@ -89,6 +77,10 @@ sub usage {
     -color COLOR=OTHERCOLOR
       Use this switch to force a color to display as another. Useful if just one in a large set blends in with your background
 
+    -rule "/perl regex/ COLOR"
+      Add a rule where any text that matches the provided /perl regex/ will be colored as COLOR,
+      where COLOR can be any of the named colors from $prog -show-colors
+
     -less
       View the output in less
 
@@ -110,11 +102,26 @@ sub usage {
  
     # Another way to use less and preserve colors...
     $prog $dirname/$prog | less -R
+
+    # Specify additional rules at runtime
+    $prog $dirname/$prog -rule "/this is a test/ BBLUE" 
  
   END_USAGE
 
   say "$usage";
   exit(0);
+}
+
+sub print_colors {
+  my $spacing="14";
+  printf "%${spacing}s ", "Text Color:";
+  print " Rendition:\n";
+  foreach my $color (@color) {
+    printf "%${spacing}s ", $color;
+    print "$colors{$color} Text \e[0m";
+    print "\n";
+  }
+  exit;
 }
 
 sub check_required_args {
@@ -124,10 +131,12 @@ sub check_required_args {
 
 sub adjust_colors {
   my @color_pair = split(/=/, $ARGV[0]);
-  $colors{$color_pair[0]} = $colors{$color_pair[1]};
-  #print $color_pair;
-  #print "\n";
-  #exit;
+  $colors{$color_pair[0]} = $colors{$color_pair[1]} if (($color_pair[0]) && ($color_pair[1]));
+}
+
+sub add_rule {
+  my $new_rule = $ARGV[0];
+  &rule_to_hash("$new_rule") if ($ARGV[0]);
 }
 
 sub handle_args {
@@ -136,6 +145,7 @@ sub handle_args {
     'add-ruleset=s' => \$add_ruleset,
     'show-colors' => \&print_colors,
     'use-ruleset-dir=s' => \$ruleset_dir,
+    'rule' => \&add_rule,
     'color' => \&adjust_colors,
     'less' => \$toless,
     'help' => \&usage,
@@ -156,16 +166,21 @@ sub warn {
   say "$msg";
 }
 
+sub rule_to_hash {
+  my $rule = shift;
+  chomp $rule;
+  #next if ($rule =~ /^\s*#|^$|^[^\/]/);
+  return if ($rule =~ /^\s*#|^$|^[^\/]/);
+  my @rulearr = split(/\s([A-Z]+$)/, $rule);
+  my @regexarr = split(/(^\/|\/$)/, $rulearr[0]);
+  $rules{$regexarr[2]} = $rulearr[1];
+}
+
 sub load_rules {
   my $rulefile = shift;
   open my $fh, "<", $rulefile;
   while (<$fh>) {
-    my $rule = $_;
-    chomp $rule;
-    next if ($rule =~ /^\s*#|^$|^[^\/]/);
-    my @rulearr = split(/\s([A-Z]+$)/, $rule);
-    my @regexarr = split(/(^\/|\/$)/, $rulearr[0]);
-    $rules{$regexarr[2]} = $rulearr[1];
+    &rule_to_hash("$_")
   }
   close $fh;
 }
