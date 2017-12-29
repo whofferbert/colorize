@@ -102,9 +102,6 @@ sub usage {
  
     # Another way to use less and preserve colors...
     $prog $dirname/$prog | less -R
-
-    # Specify additional rules at runtime
-    $prog $dirname/$prog -rule "/this is a test/ BBLUE" 
  
   END_USAGE
 
